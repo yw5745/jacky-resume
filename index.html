@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JACKY · QC Analyst / Lab Engineer</title>
+<style>
+  *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+  :root {
+    --bg: #0a0e17;
+    --surface: #111827;
+    --border: #1e293b;
+    --cyan: #06d6f0;
+    --blue: #3b82f6;
+    --purple: #8b5cf6;
+    --text: #e2e8f0;
+    --text-muted: #94a3b8;
+    --glow-cyan: 0 0 20px rgba(6,214,240,0.3);
+    --glow-blue: 0 0 20px rgba(59,130,246,0.3);
+  }
+
+  body {
+    font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* ─── Canvas Background ─── */
+  #bg-canvas { position: fixed; top:0; left:0; z-index:0; width:100%; height:100%; }
+
+  /* ─── Layout ─── */
+  .container { position:relative; z-index:1; max-width:1000px; margin:0 auto; padding:0 24px; }
+
+  /* ─── Navigation ─── */
+  nav {
+    position:fixed; top:0; left:0; right:0; z-index:100;
+    background: rgba(10,14,23,0.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+  nav .inner {
+    max-width:1000px; margin:0 auto; padding:0 24px;
+    display:flex; align-items:center; justify-content:space-between; height:56px;
+  }
+  nav .logo { font-size:1.2rem; font-weight:700; color:var(--cyan); letter-spacing:1px; }
+  nav .nav-right { display:flex; align-items:center; gap:24px; }
+  nav .links { display:flex; gap:28px; list-style:none; }
+  nav .links a {
+    color:var(--text-muted); text-decoration:none; font-size:0.9rem;
+    transition: color 0.25s; position:relative;
+  }
+  nav .links a:hover { color:var(--cyan); }
+  nav .links a::after {
+    content:''; position:absolute; bottom:-4px; left:0; width:0; height:1.5px;
+    background:var(--cyan); transition:width 0.25s;
+  }
+  nav .links a:hover::after { width:100%; }
+
+  /* ─── Language Toggle ─── */
+  .lang-toggle {
+    display:flex; align-items:center; gap:6px;
+    background:var(--surface); border:1px solid var(--border); border-radius:20px;
+    padding:4px 6px; cursor:pointer; font-size:0.78rem; font-weight:600;
+    color:var(--text-muted); transition:all 0.3s; user-select:none;
+  }
+  .lang-toggle:hover { border-color:var(--cyan); }
+  .lang-toggle .lang-option {
+    padding:4px 10px; border-radius:16px; transition:all 0.3s;
+  }
+  .lang-toggle .lang-option.active {
+    background:var(--cyan); color:#000;
+  }
+
+  /* ─── Hero ─── */
+  .hero {
+    min-height:100vh; display:flex; align-items:center; position:relative;
+    padding-top:56px;
+  }
+  .hero .badge {
+    display:inline-block; padding:6px 16px; border:1px solid var(--border);
+    border-radius:50px; font-size:0.85rem; color:var(--cyan); margin-bottom:24px;
+    letter-spacing:2px; text-transform:uppercase;
+  }
+  .hero h1 {
+    font-size:clamp(2.5rem,6vw,4rem); font-weight:800; line-height:1.15;
+    margin-bottom:16px;
+  }
+  .hero h1 .highlight {
+    background: linear-gradient(135deg, var(--cyan), var(--purple));
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+    background-clip:text;
+  }
+  .hero .subtitle {
+    font-size:1.2rem; color:var(--text-muted); max-width:520px; margin-bottom:32px;
+  }
+  .hero .cta-group { display:flex; gap:14px; flex-wrap:wrap; }
+  .btn {
+    padding:12px 28px; border-radius:8px; font-size:0.95rem; font-weight:600;
+    text-decoration:none; cursor:pointer; transition:all 0.3s; border:none;
+    display:inline-flex; align-items:center; gap:8px;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--cyan), var(--blue));
+    color:#000; box-shadow: var(--glow-cyan);
+  }
+  .btn-primary:hover { transform:translateY(-2px); box-shadow:0 0 30px rgba(6,214,240,0.5); }
+  .btn-outline {
+    background:transparent; border:1px solid var(--border); color:var(--text);
+  }
+  .btn-outline:hover { border-color:var(--cyan); color:var(--cyan); }
+
+  /* ─── Section Common ─── */
+  section { padding:100px 0; }
+  .section-label {
+    font-size:0.8rem; text-transform:uppercase; letter-spacing:3px;
+    color:var(--cyan); margin-bottom:12px;
+  }
+  .section-title {
+    font-size:2rem; font-weight:700; margin-bottom:48px; position:relative;
+  }
+  .section-title::before {
+    content:''; display:block; width:60px; height:4px;
+    background: linear-gradient(90deg, var(--cyan), var(--purple));
+    border-radius:2px; margin-bottom:16px;
+  }
+
+  /* ─── About ─── */
+  .about-grid {
+    display:grid; grid-template-columns:1fr 1fr; gap:48px; align-items:center;
+  }
+  .about-text p { color:var(--text-muted); margin-bottom:20px; font-size:1.02rem; }
+  .about-text .highlight-num {
+    font-size:2.5rem; font-weight:800; color:var(--cyan); line-height:1;
+  }
+  .about-text .highlight-label { font-size:0.85rem; color:var(--text-muted); }
+  .stat-row { display:flex; gap:40px; margin-top:28px; }
+  .avatar-area {
+    position:relative; width:280px; height:280px; margin:0 auto;
+    border-radius:50%; border:2px solid var(--border);
+    display:flex; align-items:center; justify-content:center;
+    background: radial-gradient(circle at center, rgba(6,214,240,0.08), transparent 70%);
+    box-shadow: var(--glow-cyan);
+  }
+  .avatar-img {
+    width:100%; height:100%; border-radius:50%;
+    object-fit:cover; position:relative; z-index:1;
+  }
+  .avatar-ring {
+    position:absolute; inset:-8px; border-radius:50%;
+    border:2px solid transparent;
+    border-top-color:var(--cyan); border-right-color:var(--purple);
+    animation: spin 8s linear infinite;
+  }
+  @keyframes spin { to { transform:rotate(360deg); } }
+
+  /* ─── Skills ─── */
+  .skills-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:24px; }
+  .skill-card {
+    background:var(--surface); border:1px solid var(--border); border-radius:12px;
+    padding:28px; transition:all 0.35s; position:relative; overflow:hidden;
+  }
+  .skill-card::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:2px;
+    background: linear-gradient(90deg, var(--cyan), var(--purple));
+    opacity:0; transition:opacity 0.35s;
+  }
+  .skill-card:hover { border-color:var(--cyan); transform:translateY(-4px); box-shadow:var(--glow-cyan); }
+  .skill-card:hover::before { opacity:1; }
+  .skill-card .icon { font-size:2rem; margin-bottom:16px; }
+  .skill-card h3 { font-size:1.05rem; margin-bottom:8px; }
+  .skill-card p { color:var(--text-muted); font-size:0.9rem; }
+
+  /* ─── Timeline ─── */
+  .timeline { position:relative; padding-left:32px; }
+  .timeline::before {
+    content:''; position:absolute; left:8px; top:0; bottom:0;
+    width:1px; background:var(--border);
+  }
+  .timeline-item { position:relative; margin-bottom:40px; }
+  .timeline-item::before {
+    content:''; position:absolute; left:-28px; top:6px;
+    width:12px; height:12px; border-radius:50%;
+    background:var(--cyan); box-shadow:var(--glow-cyan);
+  }
+  .timeline-item .period {
+    font-size:0.8rem; color:var(--cyan); letter-spacing:1px; margin-bottom:4px;
+  }
+  .timeline-item h3 { font-size:1.1rem; margin-bottom:4px; }
+  .timeline-item .org { color:var(--text-muted); font-size:0.9rem; margin-bottom:8px; }
+  .timeline-item p { color:var(--text-muted); font-size:0.92rem; }
+
+  /* ─── Contact ─── */
+  .contact-grid {
+    display:grid; place-items:center;
+  }
+  .contact-info .item {
+    display:flex; align-items:center; gap:14px; margin-bottom:20px;
+    color:var(--text-muted);
+  }
+  .contact-info .item .ci-icon {
+    width:44px; height:44px; border-radius:10px; background:var(--surface);
+    border:1px solid var(--border); display:flex; align-items:center;
+    justify-content:center; font-size:1.2rem; flex-shrink:0;
+  }
+  .qr-wrapper { text-align:center; }
+  .qr-card {
+    display:inline-block; background:#fff; padding:24px; border-radius:16px;
+    box-shadow:0 0 40px rgba(6,214,240,0.15); position:relative;
+  }
+  .qr-img { display:block; width:200px; height:200px; }
+  .qr-card .qr-label {
+    margin-top:12px; font-size:0.85rem; color:#334155; font-weight:600;
+  }
+  .qr-card .qr-pulse {
+    position:absolute; inset:-12px; border-radius:20px;
+    border:2px solid var(--cyan); animation: qrPulse 2.5s ease-in-out infinite; pointer-events:none;
+  }
+  @keyframes qrPulse {
+    0%, 100% { opacity:0.4; transform:scale(1); }
+    50%      { opacity:1;   transform:scale(1.03); }
+  }
+
+  /* ─── Footer ─── */
+  footer {
+    text-align:center; padding:36px 0; border-top:1px solid var(--border);
+    color:var(--text-muted); font-size:0.85rem;
+  }
+
+  /* ─── Responsive ─── */
+  @media (max-width:768px) {
+    .about-grid, .contact-grid, .skills-grid { grid-template-columns:1fr; }
+    .skills-grid { grid-template-columns:repeat(2,1fr); }
+    nav .links { display:none; }
+    .about-grid .avatar-area { order:-1; width:200px; height:200px; }
+  }
+  @media (max-width:480px) {
+    .skills-grid { grid-template-columns:1fr; }
+    .hero h1 { font-size:2rem; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+
+<!-- ──── Navigation ──── -->
+<nav>
+  <div class="inner">
+    <div class="logo">&lt;JACKY /&gt;</div>
+    <div class="nav-right">
+      <ul class="links">
+        <li><a href="#about" data-i18n="nav-about">关于我</a></li>
+        <li><a href="#skills" data-i18n="nav-skills">专业能力</a></li>
+        <li><a href="#experience" data-i18n="nav-experience">经历</a></li>
+        <li><a href="#education" data-i18n="nav-education">教育</a></li>
+        <li><a href="#contact" data-i18n="nav-contact">联系方式</a></li>
+      </ul>
+      <div class="lang-toggle" id="lang-toggle" title="Switch Language">
+        <span class="lang-option active" data-lang="zh">中</span>
+        <span class="lang-option" data-lang="en">EN</span>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- ──── Hero ──── -->
+<section class="hero">
+  <div class="container">
+    <div class="badge" data-i18n="badge">QC Analyst / Lab Engineer</div>
+    <h1><span data-i18n="hero-greeting">你好，我是</span><br><span class="highlight" data-i18n="hero-name">姚稳</span></h1>
+    <p class="subtitle" data-i18n="hero-subtitle">
+      7年跨行业实验室技术与管理经验，专注分析方法开发、质量合规与检测流程优化。从微生物检测到理化分析，以严谨的GMP/GLP体系确保每一个数据的准确与可靠。
+    </p>
+    <div class="cta-group">
+      <a href="#contact" class="btn btn-primary" data-i18n="hero-cta-contact">&#9993; 联系我</a>
+      <a href="#about" class="btn btn-outline" data-i18n="hero-cta-learn">了解更多 &darr;</a>
+    </div>
+  </div>
+</section>
+
+<!-- ──── About ──── -->
+<section id="about">
+  <div class="container">
+    <div class="section-label" data-i18n="about-label">01 / 关于我</div>
+    <div class="section-title" data-i18n="about-title">自我介绍</div>
+    <div class="about-grid">
+      <div class="about-text">
+        <p data-i18n="about-p1">
+          我是一名拥有<strong>7年</strong>跨行业经验的<strong>实验室工程师 / QC分析师</strong>，深耕生物医药与工业检测领域。从分子生物学检测到理化分析，从方法验证到实验室合规管理，具备完整的技术能力链。
+        </p>
+        <p data-i18n="about-p2">
+          熟悉<strong>GMP/GLP</strong>规范体系下的实验室运作，在生物制品QC、环境监控、方法验证与优化方面积累了丰富的实战经验。善于运用QC工具（鱼骨图、PDCA）解决复杂检测难题。
+        </p>
+        <p data-i18n="about-p3">
+          工作之外，我持续关注分析化学与生物检测领域的前沿技术，致力于在规范、严谨的质量体系下为产品安全与合规保驾护航。
+        </p>
+        <div class="stat-row">
+          <div><div class="highlight-num" data-i18n="stat-exp">7年+</div><div class="highlight-label" data-i18n="stat-exp-label">实验室经验</div></div>
+          <div><div class="highlight-num" data-i18n="stat-samples">400+</div><div class="highlight-label" data-i18n="stat-samples-label">样品问题处理</div></div>
+          <div><div class="highlight-num" data-i18n="stat-sop">20+</div><div class="highlight-label" data-i18n="stat-sop-label">SOP/规程文件</div></div>
+        </div>
+      </div>
+      <div class="avatar-area">
+        <div class="avatar-ring"></div>
+        <img src="avatar.jpg" alt="JACKY" class="avatar-img" />
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ──── Skills ──── -->
+<section id="skills">
+  <div class="container">
+    <div class="section-label" data-i18n="skills-label">02 / 专业能力</div>
+    <div class="section-title" data-i18n="skills-title">技能栈</div>
+    <div class="skills-grid">
+      <div class="skill-card">
+        <div class="icon">&#128300;</div>
+        <h3 data-i18n="skill1-title">微生物与生物检测</h3>
+        <p data-i18n="skill1-desc">无菌检查、环境监测、工艺用水毒性检测、生物制品常规检测 — GMP规范下的生物分析全流程。</p>
+      </div>
+      <div class="skill-card">
+        <div class="icon">&#128202;</div>
+        <h3 data-i18n="skill2-title">理化与分析化学</h3>
+        <p data-i18n="skill2-desc">原子吸收光谱(AAS)、ICP-OES、UV-Vis、常规理化分析(pH/电导率) — 多行业来料与产品检测经验。</p>
+      </div>
+      <div class="skill-card">
+        <div class="icon">&#128736;</div>
+        <h3 data-i18n="skill3-title">分子生物学技术</h3>
+        <p data-i18n="skill3-desc">核酸提取与纯化、PCR与qPCR、电泳、ELISA检测 — 扎实的分子生物学实验操作与数据审核能力。</p>
+      </div>
+      <div class="skill-card">
+        <div class="icon">&#128270;</div>
+        <h3 data-i18n="skill4-title">质量体系与合规</h3>
+        <p data-i18n="skill4-desc">GLP/CNAS体系、ALCOA+数据完整性原则、偏差调查(OOS/OOT)、CAPA流程 — 严谨的合规意识与执行经验。</p>
+      </div>
+      <div class="skill-card">
+        <div class="icon">&#128221;</div>
+        <h3 data-i18n="skill5-title">方法验证与优化</h3>
+        <p data-i18n="skill5-desc">分析方法验证、QC工具(鱼骨图/PDCA)问题定位、对比实验设计 — 曾主导优化检测周期缩短50%。</p>
+      </div>
+      <div class="skill-card">
+        <div class="icon">&#9881;</div>
+        <h3 data-i18n="skill6-title">实验室运营与EHS</h3>
+        <p data-i18n="skill6-desc">试剂/耗材/标准品管理、危化品台账与安全存储、应急预案管理 — 全年安全"0"事故记录。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ──── Experience ──── -->
+<section id="experience">
+  <div class="container">
+    <div class="section-label" data-i18n="exp-label">03 / 经历</div>
+    <div class="section-title" data-i18n="exp-title">职业历程</div>
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="period">2024.06 — 2025.06</div>
+        <h3 data-i18n="exp1-title">荧光值班长</h3>
+        <div class="org" data-i18n="exp1-org">永青集团</div>
+        <p data-i18n="exp1-desc">负责X射线荧光光谱等精密仪器的日常操作与校准，数据报告差错率低于0.1%；主导处理荧光仪器真空故障等5+次重大设备隐患并完成CAPA报告；担任中方联络人处理400+样品问题。</p>
+      </div>
+      <div class="timeline-item">
+        <div class="period">2021.03 — 2024.03</div>
+        <h3 data-i18n="exp2-title">QC分析师</h3>
+        <div class="org" data-i18n="exp2-org">安徽首矿大昌金属材料有限公司</div>
+        <p data-i18n="exp2-desc">独立负责原材料(合金/煤炭)的化学分析(ICP-OES, AAS)与工业用水送检；主导优化ICP-OES检测周期，运用鱼骨图和PDCA循环将检测周期缩短50%；起草修订实验室管理规程及SOP超20份，协助通过CNAS认证及客户审计。</p>
+      </div>
+      <div class="timeline-item">
+        <div class="period">2017.10 — 2019.05</div>
+        <h3 data-i18n="exp3-title">实验工程师</h3>
+        <div class="org" data-i18n="exp3-org">上海美吉生物医药科技有限公司</div>
+        <p data-i18n="exp3-desc">在GMP规范下熟练执行DNA/RNA提取、PCR、qPCR、电泳等常规分子生物学实验，独立完成实验记录与报告；负责荧光定量PCR实验数据审核与汇总，确保数据误差&lt;3%；参与《荧光定量PCR标准操作规程》的修订与升版工作。</p>
+      </div>
+      <div class="timeline-item">
+        <div class="period">2016.05 — 2017.10</div>
+        <h3 data-i18n="exp4-title">技术支持专员</h3>
+        <div class="org" data-i18n="exp4-org">上海硕盟生物科技有限公司</div>
+        <p data-i18n="exp4-desc">独立负责向高校及工业客户提供生命科学产品的技术参数解答与基础应用支持，善于将复杂技术信息转化为清晰易懂的说明，具备多任务环境下高效准确的沟通与文档处理能力。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ──── Education ──── -->
+<section id="education">
+  <div class="container">
+    <div class="section-label" data-i18n="edu-label">04 / 教育背景</div>
+    <div class="section-title" data-i18n="edu-title">学历</div>
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="period">2011.09 — 2015.07</div>
+        <h3 data-i18n="edu1-title">生物工程 · 本科</h3>
+        <div class="org" data-i18n="edu1-org">安徽科技学院</div>
+        <p data-i18n="edu1-desc">主修生物工程专业，系统学习分子生物学、生物化学、微生物学等核心课程，为后续在生物医药与检测领域的职业发展奠定了坚实的理论基础。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ──── Contact ──── -->
+<section id="contact">
+  <div class="container">
+    <div class="section-label" data-i18n="contact-label">05 / 联系</div>
+    <div class="section-title" data-i18n="contact-title">联系方式</div>
+    <div class="contact-grid">
+      <div class="qr-wrapper">
+        <div class="qr-card">
+          <div class="qr-pulse"></div>
+          <img src="二维码.jpg" alt="QR Code" class="qr-img" />
+          <div class="qr-label" data-i18n="qr-label">联系方式</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ──── Footer ──── -->
+<footer>
+  <div class="container" data-i18n="footer-text">&copy; 2026 姚稳 · 保留所有权利</div>
+</footer>
+
+<script>
+// ── Particle Background ──
+(function() {
+  const c = document.getElementById('bg-canvas');
+  const ctx = c.getContext('2d');
+  let particles = [];
+  let w, h;
+
+  function resize() {
+    w = c.width = window.innerWidth;
+    h = c.height = window.innerHeight;
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  class Particle {
+    constructor() { this.reset(true); }
+    reset(init) {
+      this.x = init ? Math.random() * w : w + 10;
+      this.y = Math.random() * h;
+      this.r = Math.random() * 1.5 + 0.5;
+      this.vx = -(Math.random() * 0.4 + 0.1);
+      this.vy = (Math.random() - 0.5) * 0.3;
+      this.opacity = Math.random() * 0.5 + 0.1;
+    }
+    update() {
+      this.x += this.vx; this.y += this.vy;
+      if (this.x < -10) { this.reset(false); this.x = w + 10; }
+    }
+    draw(ctx) {
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.r, 0, Math.PI*2);
+      ctx.fillStyle = `rgba(6,214,240,${this.opacity})`;
+      ctx.fill();
+    }
+  }
+
+  const count = Math.min(100, Math.floor(window.innerWidth * 0.06));
+  for (let i = 0; i < count; i++) particles.push(new Particle());
+
+  function animate() {
+    ctx.clearRect(0, 0, w, h);
+    ctx.strokeStyle = 'rgba(30,41,59,0.4)';
+    ctx.lineWidth = 0.5;
+    for (let i = 0; i < particles.length; i++) {
+      for (let j = i + 1; j < particles.length; j++) {
+        const dx = particles[i].x - particles[j].x;
+        const dy = particles[i].y - particles[j].y;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+        if (dist < 120) {
+          ctx.beginPath();
+          ctx.moveTo(particles[i].x, particles[i].y);
+          ctx.lineTo(particles[j].x, particles[j].y);
+          ctx.stroke();
+        }
+      }
+    }
+    particles.forEach(p => { p.update(); p.draw(ctx); });
+    requestAnimationFrame(animate);
+  }
+  animate();
+})();
+
+// ── i18n System ──
+(function() {
+  const i18n = {
+    zh: {
+      // Nav
+      'nav-about': '关于我',
+      'nav-skills': '专业能力',
+      'nav-experience': '经历',
+      'nav-education': '教育',
+      'nav-contact': '联系方式',
+      // Hero
+      'badge': 'QC Analyst / Lab Engineer',
+      'hero-greeting': '你好，我是',
+      'hero-name': '姚稳',
+      'hero-subtitle': '7年跨行业实验室技术与管理经验，专注分析方法开发、质量合规与检测流程优化。从微生物检测到理化分析，以严谨的GMP/GLP体系确保每一个数据的准确与可靠。',
+      'hero-cta-contact': '✉ 联系我',
+      'hero-cta-learn': '了解更多 ↓',
+      // About
+      'about-label': '01 / 关于我',
+      'about-title': '自我介绍',
+      'about-p1': '我是一名拥有<strong>7年</strong>跨行业经验的<strong>实验室工程师 / QC分析师</strong>，深耕生物医药与工业检测领域。从分子生物学检测到理化分析，从方法验证到实验室合规管理，具备完整的技术能力链。',
+      'about-p2': '熟悉<strong>GMP/GLP</strong>规范体系下的实验室运作，在生物制品QC、环境监控、方法验证与优化方面积累了丰富的实战经验。善于运用QC工具（鱼骨图、PDCA）解决复杂检测难题。',
+      'about-p3': '工作之外，我持续关注分析化学与生物检测领域的前沿技术，致力于在规范、严谨的质量体系下为产品安全与合规保驾护航。',
+      'stat-exp': '7年+',
+      'stat-exp-label': '实验室经验',
+      'stat-samples': '400+',
+      'stat-samples-label': '样品问题处理',
+      'stat-sop': '20+',
+      'stat-sop-label': 'SOP/规程文件',
+      // Skills
+      'skills-label': '02 / 专业能力',
+      'skills-title': '技能栈',
+      'skill1-title': '微生物与生物检测',
+      'skill1-desc': '无菌检查、环境监测、工艺用水毒性检测、生物制品常规检测 — GMP规范下的生物分析全流程。',
+      'skill2-title': '理化与分析化学',
+      'skill2-desc': '原子吸收光谱(AAS)、ICP-OES、UV-Vis、常规理化分析(pH/电导率) — 多行业来料与产品检测经验。',
+      'skill3-title': '分子生物学技术',
+      'skill3-desc': '核酸提取与纯化、PCR与qPCR、电泳、ELISA检测 — 扎实的分子生物学实验操作与数据审核能力。',
+      'skill4-title': '质量体系与合规',
+      'skill4-desc': 'GLP/CNAS体系、ALCOA+数据完整性原则、偏差调查(OOS/OOT)、CAPA流程 — 严谨的合规意识与执行经验。',
+      'skill5-title': '方法验证与优化',
+      'skill5-desc': '分析方法验证、QC工具(鱼骨图/PDCA)问题定位、对比实验设计 — 曾主导优化检测周期缩短50%。',
+      'skill6-title': '实验室运营与EHS',
+      'skill6-desc': '试剂/耗材/标准品管理、危化品台账与安全存储、应急预案管理 — 全年安全"0"事故记录。',
+      // Experience
+      'exp-label': '03 / 经历',
+      'exp-title': '职业历程',
+      'exp1-title': '荧光值班长',
+      'exp1-org': '永青集团',
+      'exp1-desc': '负责X射线荧光光谱等精密仪器的日常操作与校准，数据报告差错率低于0.1%；主导处理荧光仪器真空故障等5+次重大设备隐患并完成CAPA报告；担任中方联络人处理400+样品问题。',
+      'exp2-title': 'QC分析师',
+      'exp2-org': '安徽首矿大昌金属材料有限公司',
+      'exp2-desc': '独立负责原材料(合金/煤炭)的化学分析(ICP-OES, AAS)与工业用水送检；主导优化ICP-OES检测周期，运用鱼骨图和PDCA循环将检测周期缩短50%；起草修订实验室管理规程及SOP超20份，协助通过CNAS认证及客户审计。',
+      'exp3-title': '实验工程师',
+      'exp3-org': '上海美吉生物医药科技有限公司',
+      'exp3-desc': '在GMP规范下熟练执行DNA/RNA提取、PCR、qPCR、电泳等常规分子生物学实验，独立完成实验记录与报告；负责荧光定量PCR实验数据审核与汇总，确保数据误差<3%；参与《荧光定量PCR标准操作规程》的修订与升版工作。',
+      'exp4-title': '技术支持专员',
+      'exp4-org': '上海硕盟生物科技有限公司',
+      'exp4-desc': '独立负责向高校及工业客户提供生命科学产品的技术参数解答与基础应用支持，善于将复杂技术信息转化为清晰易懂的说明，具备多任务环境下高效准确的沟通与文档处理能力。',
+      // Education
+      'edu-label': '04 / 教育背景',
+      'edu-title': '学历',
+      'edu1-title': '生物工程 · 本科',
+      'edu1-org': '安徽科技学院',
+      'edu1-desc': '主修生物工程专业，系统学习分子生物学、生物化学、微生物学等核心课程，为后续在生物医药与检测领域的职业发展奠定了坚实的理论基础。',
+      // Contact
+      'contact-label': '05 / 联系',
+      'contact-title': '联系方式',
+      'contact-email': '邮箱',
+      'contact-phone': '电话',
+      'contact-location': '所在地',
+      'contact-location-val': '中国',
+      'contact-social': '社交媒体',
+      'qr-label': '联系方式',
+      'qr-hint': '请替换为你的实际二维码',
+      // Footer
+      'footer-text': '© 2026 姚稳 · 保留所有权利',
+      // HTML title
+      'page-title': '姚稳 · QC分析师 / 实验室工程师'
+    },
+    en: {
+      // Nav
+      'nav-about': 'About',
+      'nav-skills': 'Skills',
+      'nav-experience': 'Experience',
+      'nav-education': 'Education',
+      'nav-contact': 'Contact',
+      // Hero
+      'badge': 'QC Analyst / Lab Engineer',
+      'hero-greeting': 'Hello, I\'m',
+      'hero-name': 'JACKY',
+      'hero-subtitle': '7 years of cross-industry laboratory technical and management experience, specializing in analytical method development, quality compliance, and testing process optimization. From microbiological testing to physicochemical analysis, ensuring data accuracy and reliability under rigorous GMP/GLP systems.',
+      'hero-cta-contact': '✉ Contact Me',
+      'hero-cta-learn': 'Learn More ↓',
+      // About
+      'about-label': '01 / About',
+      'about-title': 'About Me',
+      'about-p1': 'I am a <strong>Lab Engineer / QC Analyst</strong> with <strong>7 years</strong> of cross-industry experience, deeply engaged in biomedical and industrial testing. From molecular biology assays to physicochemical analysis, from method validation to lab compliance management, I possess a complete technical skill chain.',
+      'about-p2': 'Proficient in laboratory operations under <strong>GMP/GLP</strong> standards, with hands-on experience in biologics QC, environmental monitoring, and method validation & optimization. Skilled in using QC tools (Fishbone Diagram, PDCA) to solve complex testing challenges.',
+      'about-p3': 'Beyond work, I continuously follow cutting-edge technologies in analytical chemistry and bioassay, committed to ensuring product safety and compliance within a rigorous quality system.',
+      'stat-exp': '7+ Yrs',
+      'stat-exp-label': 'Lab Experience',
+      'stat-samples': '400+',
+      'stat-samples-label': 'Sample Cases',
+      'stat-sop': '20+',
+      'stat-sop-label': 'SOP Documents',
+      // Skills
+      'skills-label': '02 / Skills',
+      'skills-title': 'Expertise',
+      'skill1-title': 'Microbiology & Bioassay',
+      'skill1-desc': 'Sterility testing, environmental monitoring, process water toxicity testing, routine biologics testing — full-flow bioanalysis under GMP standards.',
+      'skill2-title': 'Physicochemical Analysis',
+      'skill2-desc': 'Atomic absorption spectroscopy (AAS), ICP-OES, UV-Vis, routine physicochemical analysis (pH/conductivity) — multi-industry incoming material and product testing experience.',
+      'skill3-title': 'Molecular Biology Techniques',
+      'skill3-desc': 'Nucleic acid extraction & purification, PCR & qPCR, electrophoresis, ELISA — solid molecular biology lab skills and data review capabilities.',
+      'skill4-title': 'Quality System & Compliance',
+      'skill4-desc': 'GLP/CNAS systems, ALCOA+ data integrity principles, deviation investigation (OOS/OOT), CAPA processes — rigorous compliance awareness and execution experience.',
+      'skill5-title': 'Method Validation & Optimization',
+      'skill5-desc': 'Analytical method validation, QC tools (Fishbone/PDCA) for root cause analysis, comparative experiment design — led optimization that reduced testing cycle time by 50%.',
+      'skill6-title': 'Lab Operations & EHS',
+      'skill6-desc': 'Reagent/consumable/reference standard management, hazardous chemical inventory & safe storage, emergency plan management — zero safety incidents throughout tenure.',
+      // Experience
+      'exp-label': '03 / Experience',
+      'exp-title': 'Career History',
+      'exp1-title': 'Fluorescence Shift Leader',
+      'exp1-org': 'Yongqing Group',
+      'exp1-desc': 'Responsible for daily operation and calibration of precision instruments including X-ray fluorescence spectrometers, maintaining data report error rate below 0.1%. Led troubleshooting of 5+ major equipment issues including vacuum failures, completing root cause analysis and CAPA reports. Served as designated Chinese liaison handling 400+ sample specification and unknown sample issues.',
+      'exp2-title': 'QC Analyst',
+      'exp2-org': 'Anhui Shoukuang Dachang Metal Materials Co., Ltd.',
+      'exp2-desc': 'Independently performed chemical analysis (ICP-OES, AAS) of raw materials (alloys, coal) and industrial water testing. Led optimization of ICP-OES metal element testing cycle, applying Fishbone Diagram and PDCA to reduce testing cycle by 50%. Drafted and revised 20+ lab management procedures, equipment SOPs, and record forms, assisting in CNAS accreditation and customer audits.',
+      'exp3-title': 'Experimental Engineer',
+      'exp3-org': 'Shanghai Meiji Biomedical Technology Co., Ltd.',
+      'exp3-desc': 'Proficiently performed routine molecular biology experiments including DNA/RNA extraction, PCR, qPCR, and electrophoresis under GMP standards. Independently completed experiment records and reports. Responsible for data review and compilation of qPCR results, maintaining data error rate below 3%. Participated in the revision and upgrade of the Standard Operating Procedure for qPCR.',
+      'exp4-title': 'Technical Support Specialist',
+      'exp4-org': 'Shanghai Shuomeng Biotechnology Co., Ltd.',
+      'exp4-desc': 'Independently provided technical parameter consultation and application support for life science products to university and industrial clients. Developed the ability to translate complex technical information into clear, understandable documentation, with efficient communication and document processing skills in multi-tasking environments.',
+      // Education
+      'edu-label': '04 / Education',
+      'edu-title': 'Education',
+      'edu1-title': 'Bioengineering · Bachelor',
+      'edu1-org': 'Anhui Science and Technology University',
+      'edu1-desc': 'Majored in Bioengineering, systematically studying core courses in molecular biology, biochemistry, and microbiology, building a solid theoretical foundation for career development in biomedical and testing fields.',
+      // Contact
+      'contact-label': '05 / Contact',
+      'contact-title': 'Contact',
+      'contact-email': 'Email',
+      'contact-phone': 'Phone',
+      'contact-location': 'Location',
+      'contact-location-val': 'China',
+      'contact-social': 'Social',
+      'qr-label': 'Contact Info',
+      'qr-hint': 'Replace with your actual QR code',
+      // Footer
+      'footer-text': '© 2026 JACKY · All Rights Reserved',
+      // HTML title
+      'page-title': 'JACKY · QC Analyst / Lab Engineer'
+    }
+  };
+
+  let currentLang = localStorage.getItem('lang') || 'zh';
+
+  function setLang(lang) {
+    currentLang = lang;
+    localStorage.setItem('lang', lang);
+
+    // Update lang toggle buttons
+    document.querySelectorAll('.lang-option').forEach(el => {
+      el.classList.toggle('active', el.dataset.lang === lang);
+    });
+
+    // Update HTML lang attr
+    document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
+
+    // Update all elements with data-i18n
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.dataset.i18n;
+      if (i18n[lang][key] !== undefined) {
+        // Use innerHTML for keys that contain HTML tags
+        if (key.startsWith('about-p') || key === 'exp3-desc') {
+          el.innerHTML = i18n[lang][key];
+        } else {
+          el.textContent = i18n[lang][key];
+        }
+      }
+    });
+
+    // Update page title
+    document.title = i18n[lang]['page-title'];
+
+    // Update hero CTA button (contains HTML entity + text)
+    const ctaContact = document.querySelector('.btn-primary');
+    if (ctaContact) ctaContact.innerHTML = i18n[lang]['hero-cta-contact'];
+    const ctaLearn = document.querySelector('.btn-outline');
+    if (ctaLearn) ctaLearn.innerHTML = i18n[lang]['hero-cta-learn'];
+  }
+
+  // Lang toggle click handler
+  document.getElementById('lang-toggle').addEventListener('click', function(e) {
+    const option = e.target.closest('.lang-option');
+    if (!option) return;
+    setLang(option.dataset.lang);
+  });
+
+  // Initialize with saved language
+  setLang(currentLang);
+})();
+</script>
+</body>
+</html>
