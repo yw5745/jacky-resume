@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://yw5745.github.io/jacky-resume/sitemap.xml
